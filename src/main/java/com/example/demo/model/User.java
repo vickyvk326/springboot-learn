@@ -1,10 +1,8 @@
 package com.example.demo.model;
 
-import com.example.demo.dto.CreateUserRequest;
 import com.example.demo.validation.StrongPassword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

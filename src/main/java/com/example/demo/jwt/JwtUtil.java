@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 @Component
@@ -30,9 +31,10 @@ public class JwtUtil {
     }
 
     // Generate Access Token
-    public String generateToken(String username) {
+    public String generateToken(String username, List<String> roles) {
         return Jwts.builder()
                 .subject(username)
+                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessTokenExpirationMs()))
                 .signWith(key)
@@ -40,9 +42,10 @@ public class JwtUtil {
     }
 
     // Generate Refresh Token
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(String email, List<String> roles) {
         return Jwts.builder()
                 .subject(email)
+                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshTokenExpirationMs()))
                 .signWith(key)
@@ -90,5 +93,11 @@ public class JwtUtil {
     // Check if token is expired
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return (List<String>) claims.get("roles", List.class);
     }
 }

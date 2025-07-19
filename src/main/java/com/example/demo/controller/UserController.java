@@ -2,17 +2,20 @@ package com.example.demo.controller;
 
 import com.example.demo.Service.UserService;
 import com.example.demo.dto.CreateUserRequest;
+import com.example.demo.dto.PaginatedResponse;
 import com.example.demo.dto.Response;
 import com.example.demo.dto.UserResponse;
-import com.example.demo.model.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,9 +27,21 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get users list", description = "Returns the list of users")
-    public ResponseEntity<Response<List<User>>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseEntity<Response<PaginatedResponse<UserResponse>>> getAllUsers(
+            @RequestParam(defaultValue = "1") int page,   // 1-based page index
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(hidden = true) Sort sort  // Pulls sort query string, e.g., ?sort=name,asc
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        PaginatedResponse<UserResponse> users = userService.getAllUsers(pageable);
         return ResponseEntity.ok(Response.success("Users list retrieved successfully", users));
+    }
+
+    @GetMapping("/usernameAvailable")
+    @Operation(summary = "Check if a username is available", description = "Returns true if username is available")
+    public ResponseEntity<Response<Boolean>> isUsernameAvailable(String username) {
+        boolean isAvailable = !userService.isUserNameExists(username);
+        return ResponseEntity.ok(Response.success(isAvailable ? "Username available" : "Username already taken", isAvailable));
     }
 
     @PostMapping("/register")
@@ -37,6 +52,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get user by ID", description = "Returns a single user")
     public ResponseEntity<Response<UserResponse>> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);

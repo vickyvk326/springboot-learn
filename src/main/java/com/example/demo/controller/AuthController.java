@@ -10,10 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.AccountLockedException;
 import java.util.Map;
@@ -39,6 +38,14 @@ public class AuthController {
 
         Map<String, String> tokens = authService.refreshAccessToken(refreshToken);
         return ResponseEntity.ok(Response.success("Token refreshed", tokens));
+    }
+
+    @GetMapping("/debug-roles")
+    @Operation(summary = "Check the role of the request", description = "Prints the role")
+    public void debugRoles() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("Principal: " + auth.getPrincipal()); // See who is logged in
+        System.out.println("Authorities: " + auth.getAuthorities()); // List of roles
     }
 
 }

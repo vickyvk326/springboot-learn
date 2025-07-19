@@ -13,13 +13,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmail(String email);
 
+    boolean existsByEmail(String email);
+
+    boolean existsByUserName(String userName);
+
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query("UPDATE User u SET u.failedLoginAttempts = u.failedLoginAttempts + 1 WHERE u.id = :userId")
     void incrementFailedLoginAttempts(@Param("userId") Long userId);
-
-    // Add this for resetting attempts
-    @Modifying
-    @Query("UPDATE User u SET u.failedLoginAttempts = 0 WHERE u.id = :userId")
-    void resetFailedLoginAttempts(@Param("userId") Long userId);
 }

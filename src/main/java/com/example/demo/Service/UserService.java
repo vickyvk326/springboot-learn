@@ -29,13 +29,16 @@ public class UserService {
         return new PaginatedResponse<>(dtoPage);
     }
 
-    public boolean isUserNameExists(String username){
-        return userRepository.existsByUserName(username);
+    public boolean isUserNameExists(String username) {
+        return userRepository.existsByUserName(username.trim());
     }
 
     public UserResponse createUser(CreateUserRequest request) {
         String requestEmail = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(requestEmail)) throw new KeyAlreadyExistsException("Email already in use");
+
+        String userName = request.getUserName();
+        if (isUserNameExists(userName)) throw new KeyAlreadyExistsException("Username already in use");
 
         User newUser = userMapper.toEntity(request);
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
